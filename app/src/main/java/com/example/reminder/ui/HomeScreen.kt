@@ -197,14 +197,36 @@ fun HomeScreen(
                 FilterChip(
                     selected = currentViewMode == ViewMode.LIST,
                     onClick = { currentViewMode = ViewMode.LIST },
-                    label = { Text("📋 Список") },
-                    modifier = Modifier.weight(1f)
+                    label = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("📋 Список", fontWeight = FontWeight.SemiBold)
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp)
                 )
                 FilterChip(
                     selected = currentViewMode == ViewMode.TIMELINE,
                     onClick = { currentViewMode = ViewMode.TIMELINE },
-                    label = { Text("📅 Таймлайн недели") },
-                    modifier = Modifier.weight(1f)
+                    label = {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("📅 Таймлайн недели", fontWeight = FontWeight.SemiBold)
+                        }
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(42.dp)
                 )
             }
 
