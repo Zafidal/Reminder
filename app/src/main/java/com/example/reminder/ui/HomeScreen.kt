@@ -24,6 +24,11 @@ import androidx.compose.ui.unit.sp
 import com.example.reminder.data.Reminder
 import java.util.Locale
 
+enum class ViewMode {
+    LIST,
+    TIMELINE
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -39,6 +44,8 @@ fun HomeScreen(
     val isAddCategoryDialogOpen by viewModel.isAddCategoryDialogOpen.collectAsState()
     val isManageCategoriesDialogOpen by viewModel.isManageCategoriesDialogOpen.collectAsState()
     val editingReminder by viewModel.editingReminder.collectAsState()
+
+    var currentViewMode by remember { mutableStateOf(ViewMode.LIST) }
 
     val activeCount = reminders.count { it.isEnabled }
 
@@ -144,7 +151,7 @@ fun HomeScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer
@@ -153,7 +160,7 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(14.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -179,11 +186,33 @@ fun HomeScreen(
                 }
             }
 
+            // View Mode Selector (List vs Timeline)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                FilterChip(
+                    selected = currentViewMode == ViewMode.LIST,
+                    onClick = { currentViewMode = ViewMode.LIST },
+                    label = { Text("📋 Список") },
+                    modifier = Modifier.weight(1f)
+                )
+                FilterChip(
+                    selected = currentViewMode == ViewMode.TIMELINE,
+                    onClick = { currentViewMode = ViewMode.TIMELINE },
+                    label = { Text("📅 Таймлайн недели") },
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             // Category Filter Chips
             LazyRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 item {
@@ -209,63 +238,73 @@ fun HomeScreen(
                 item {
                     SuggestionChip(
                         onClick = { viewModel.openManageCategoriesDialog() },
-                        label = { Text("Настройка ⚙️") },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                        label = { Text("⚙️") },
+                        icon = { Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(14.dp)) }
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Reminders List or Empty State
-            if (reminders.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+            // Main Content: List or Timeline
+            if (currentViewMode == ViewMode.LIST) {
+                if (reminders.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Alarm,
-                            contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = MaterialTheme.colorScheme.outline
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Нет напоминаний",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.outline
-                        )
-                        Text(
-                            text = "Нажмите +, чтобы добавить тренировку или задачу",
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
-                        )
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Alarm,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.outline
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Нет напоминаний",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.outline
+                            )
+                            Text(
+                                text = "Нажмите +, чтобы добавить тренировку или задачу",
+                                fontSize = 14.sp,
+                                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)
+                            )
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        items(
+                            items = reminders,
+                            key = { it.id }
+                        ) { reminder ->
+                            ReminderCard(
+                                reminder = reminder,
+                                onToggle = { viewModel.toggleReminder(context, reminder) },
+                                onEdit = { viewModel.openAddEditDialog(reminder) },
+                                onDelete = { viewModel.deleteReminder(context, reminder) }
+                            )
+                        }
                     }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    items(
-                        items = reminders,
-                        key = { it.id }
-                    ) { reminder ->
-                        ReminderCard(
-                            reminder = reminder,
-                            onToggle = { viewModel.toggleReminder(context, reminder) },
-                            onEdit = { viewModel.openAddEditDialog(reminder) },
-                            onDelete = { viewModel.deleteReminder(context, reminder) }
-                        )
-                    }
-                }
+                TimelineView(
+                    reminders = reminders,
+                    onToggle = { viewModel.toggleReminder(context, it) },
+                    onEdit = { viewModel.openAddEditDialog(it) },
+                    onDelete = { viewModel.deleteReminder(context, it) },
+                    modifier = Modifier.weight(1f)
+                )
             }
         }
     }
