@@ -238,8 +238,8 @@ fun HomeScreen(
                 item {
                     SuggestionChip(
                         onClick = { viewModel.openManageCategoriesDialog() },
-                        label = { Text("⚙️") },
-                        icon = { Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(14.dp)) }
+                        label = { Text("Настройка") },
+                        icon = { Icon(Icons.Default.Settings, contentDescription = null, modifier = Modifier.size(16.dp)) }
                     )
                 }
             }
